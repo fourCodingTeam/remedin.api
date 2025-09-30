@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
-var supabaseProjectRef = configuration["SUPABASE_PROJECT_REF"] ?? throw new InvalidOperationException("SUPABASE_PROJECT_REF missing");
+var supabaseProjectRef = configuration["SUPABASE_PROJECT_REF"]
+    ?? throw new InvalidOperationException("SUPABASE_PROJECT_REF missing");
+
 var supabaseUrl = $"https://{supabaseProjectRef}.supabase.co";
 var jwksUrl = $"{supabaseUrl}/auth/v1/.well-known/jwks.json";
 var validIssuer = supabaseUrl;
@@ -16,53 +15,29 @@ var validAudience = "authenticated";
 
 builder.Services.AddRouting();
 builder.Services.AddAuthorization();
-builder.Services.AddMemoryCache();
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = true;
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidIssuer = validIssuer,
-        ValidateAudience = true,
-        ValidAudience = validAudience,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.FromMinutes(2),
-        ValidateIssuerSigningKey = true
-    };
-
-    var httpClient = new HttpClient();
-
-    var memoryCache = builder.Services.BuildServiceProvider().GetRequiredService<IMemoryCache>();
-
-    options.ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
-        $"{jwksUrl}",
-        new OpenIdConnectConfigurationRetriever(),
-        new HttpDocumentRetriever(httpClient)
+        options.RequireHttpsMetadata = true;
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            RequireHttps = true
-        }
-    );
-
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = ctx => Task.CompletedTask,
-        OnAuthenticationFailed = ctx =>
-        {
-            return Task.CompletedTask;
-        },
-        OnTokenValidated = ctx =>
-        {
-            return Task.CompletedTask;
-        }
-    };
-});
+            ValidateIssuer = true,
+            ValidIssuer = validIssuer,
+            ValidateAudience = true,
+            ValidAudience = validAudience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(2),
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKeyResolver = (token, securityToken, kid, validationParameters) =>
+            {
+                using var client = new HttpClient();
+                var json = client.GetStringAsync(jwksUrl).Result;
+                var keys = new JsonWebKeySet(json).Keys;
+                return keys;
+            }
+        };
+    });
 
 var app = builder.Build();
 
