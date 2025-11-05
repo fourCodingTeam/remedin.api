@@ -13,8 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Remedin.Application\Remedin.Application.csproj" />
-    <ProjectReference Include="..\Remedin.Domain\Remedin.Domain.csproj" />
-    <ProjectReference Include="..\Remedin.Infrastructure\Remedin.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
