@@ -1,8 +1,18 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
+using Remedin.Application.Interfaces;
+using Remedin.Application.Services;
+using Remedin.Infrastructure.Extensions;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var configuration = builder.Configuration;
 
 var supabaseProjectRef = configuration["SUPABASE_PROJECT_REF"]
@@ -15,6 +25,12 @@ var validAudience = "authenticated";
 
 builder.Services.AddRouting();
 builder.Services.AddAuthorization();
+builder.Services.AddInfrastructure(builder.Configuration);
+
+#region Referencia das Services da Application
+builder.Services.AddScoped<IPersonService, PersonService>();
+#endregion
+
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -41,6 +57,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -55,5 +78,40 @@ app.MapGet("/me", (ClaimsPrincipal user) =>
     var email = user.FindFirst("email")?.Value;
     return Results.Ok(new { sub, email });
 }).RequireAuthorization();
+
+app.MapGet("/health/supabase", async (IConfiguration config) =>
+{
+    var connectionString = config.GetConnectionString("DefaultConnection");
+    var projectRef = config["SUPABASE_PROJECT_REF"];
+
+    if (string.IsNullOrEmpty(connectionString))
+        return Results.Problem("Connection string não configurada.", statusCode: 500);
+
+    try
+    {
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync();
+
+        // Testa uma consulta simples
+        await using var command = new NpgsqlCommand("SELECT 1;", connection);
+        var result = await command.ExecuteScalarAsync();
+
+        if (Convert.ToInt32(result) == 1)
+        {
+            return Results.Ok(new
+            {
+                status = "ok",
+                message = "Conectado ao banco Supabase com sucesso!",
+                projectRef
+            });
+        }
+
+        return Results.Problem("Falha ao executar consulta de teste.", statusCode: 500);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Erro ao conectar ao Supabase: {ex.Message}", statusCode: 500);
+    }
+});
 
 app.Run();
