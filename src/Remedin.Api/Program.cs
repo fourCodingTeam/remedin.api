@@ -1,8 +1,16 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Remedin.Application.Interfaces;
+using Remedin.Application.Services;
+using Remedin.Infrastructure.Extensions;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var configuration = builder.Configuration;
 
 var supabaseProjectRef = configuration["SUPABASE_PROJECT_REF"]
@@ -15,6 +23,13 @@ var validAudience = "authenticated";
 
 builder.Services.AddRouting();
 builder.Services.AddAuthorization();
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
+
+#region Referencia das Services da Application
+builder.Services.AddScoped<IPersonService, PersonService>();
+#endregion
+
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -40,6 +55,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 var app = builder.Build();
+
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseRouting();
 app.UseAuthentication();
