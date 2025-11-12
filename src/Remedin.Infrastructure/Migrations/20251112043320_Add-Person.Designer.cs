@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Remedin.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using Remedin.Infrastructure.Persistence;
 namespace Remedin.Infrastructure.Migrations
 {
     [DbContext(typeof(RemedinDbContext))]
-    partial class RemedinDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251112043320_Add-Person")]
+    partial class AddPerson
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -57,10 +60,6 @@ namespace Remedin.Infrastructure.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<float?>("WeightKg")
                         .HasColumnType("real");

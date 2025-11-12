@@ -1,9 +1,9 @@
-﻿using Remedin.Application.DTOs.Requests;
-using Remedin.Application.DTOs.Responses;
+﻿using Remedin.Application.DTOs;
 
 namespace Remedin.Application.Interfaces;
 
 public interface IPersonService
 {
-    Task<PersonDtoResponse> GetOrCreateByUserAsync(RegisterPessoaDto request);
+    Task<BaseResponse<PersonResponseDTO>> GetOrCreateByUserAsync(RegisterPessoaDto request);
+    Task<BaseResponse<PersonResponseDTO>> GetCurrentPerson();
 }

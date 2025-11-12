@@ -1,4 +1,4 @@
-namespace Remedin.Application.DTOs.Requests
+namespace Remedin.Application.DTOs
 {
     public class RegisterPessoaDto
     {

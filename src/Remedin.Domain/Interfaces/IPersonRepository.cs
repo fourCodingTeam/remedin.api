@@ -6,4 +6,5 @@ public interface IPersonRepository
 {
     Task<Person?> GetBySupabaseUserIdAsync(string supabaseUserId);
     Task AddAsync(Person person);
+    Task SaveChangesAsync();
 }

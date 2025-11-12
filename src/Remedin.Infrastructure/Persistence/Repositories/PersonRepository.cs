@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Remedin.Domain.Entities;
 using Remedin.Domain.Interfaces;
-using System;
 
 namespace Remedin.Infrastructure.Persistence;
 
@@ -21,7 +20,11 @@ public class PersonRepository : IPersonRepository
 
     public async Task AddAsync(Person person)
     {
-        _context.Persons.Add(person);
-        await _context.SaveChangesAsync();
+        await _context.Persons.AddAsync(person);
+    }
+
+    public Task SaveChangesAsync()
+    {
+        return _context.SaveChangesAsync();
     }
 }

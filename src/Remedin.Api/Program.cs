@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Npgsql;
 using Remedin.Application.Interfaces;
 using Remedin.Application.Services;
 using Remedin.Infrastructure.Extensions;
-using System.Net.Http.Headers;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +24,7 @@ var validAudience = "authenticated";
 builder.Services.AddRouting();
 builder.Services.AddAuthorization();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
 
 #region Referencia das Services da Application
 builder.Services.AddScoped<IPersonService, PersonService>();

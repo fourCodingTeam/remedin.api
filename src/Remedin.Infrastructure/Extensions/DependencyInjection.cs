@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Remedin.Domain.Interfaces;
 using Remedin.Infrastructure.Auth;
 using Remedin.Infrastructure.Persistence;
-using System;
 
 namespace Remedin.Infrastructure.Extensions;
 
@@ -31,7 +30,7 @@ public static class DependencyInjection
 
 
         services.AddScoped<IPersonRepository, PersonRepository>();
-        services.AddScoped<IAuthService, SupabaseAuthService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         return services;
     }

@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Remedin.Application.DTOs.Responses;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Remedin.Application.DTOs;
 using Remedin.Application.Interfaces;
+using Supabase.Functions.Responses;
 
 namespace Remedin.Api.Controllers;
 
+
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class PersonController : ControllerBase
@@ -15,11 +19,17 @@ public class PersonController : ControllerBase
         _personService = personService;
     }
 
-    [HttpGet("me")]
-    public async Task<ActionResult<PersonDtoResponse>> GetMe()
+    [HttpPost]
+    public async Task<ActionResult<BaseResponse>> Register([FromBody] RegisterPessoaDto request)
     {
-        var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-        var person = await _personService.GetOrCreateByUserAsync(token);
-        return Ok(person);
+        var result = await _personService.GetOrCreateByUserAsync(request);
+        return Ok(result);
+    }
+
+    [HttpGet("me")]
+    public async Task<ActionResult<BaseResponse<PersonResponseDTO>>> GetCurrentPerson()
+    {
+        var response = await _personService.GetCurrentPerson();
+        return Ok(response);
     }
 }

@@ -1,9 +1,7 @@
-﻿using Remedin.Application.DTOs.Requests;
-using Remedin.Application.DTOs.Responses;
+﻿using Remedin.Application.DTOs;
 using Remedin.Application.Interfaces;
 using Remedin.Domain.Entities;
 using Remedin.Domain.Interfaces;
-using System;
 
 namespace Remedin.Application.Services;
 
@@ -18,38 +16,63 @@ public class PersonService : IPersonService
         _personRepository = personRepository;
     }
 
-    public async Task<PersonDtoResponse> GetOrCreateByUserAsync(RegisterPessoaDto request)
+    public async Task<BaseResponse<PersonResponseDTO>> GetOrCreateByUserAsync(RegisterPessoaDto request)
     {
         var supabaseUserId = _currentUser.SupabaseUserId
             ?? throw new UnauthorizedAccessException("Invalid or expired token.");
 
+        var emailFromToken = _currentUser.Email;
+        var effectiveEmail = string.IsNullOrWhiteSpace(emailFromToken)
+            ? request.Email
+            : emailFromToken;
+
         var person = await _personRepository.GetBySupabaseUserIdAsync(supabaseUserId);
+        string responsMessage;
 
         if (person is null)
         {
             person = new Person(
-                supabaseUserId,
-                request.Email, 
-                request.Name,
-                request.BirthDate,
-                request.Phone,
-                request.WeightKg,
-                request.HeightCm
+                supabaseUserId: supabaseUserId,
+                email: effectiveEmail,
+                name: request.Name,
+                username: request.UserName,
+                birthDate: request.BirthDate,
+                phone: request.Phone,
+                weightKg: request.WeightKg,
+                heightCm: request.HeightCm
             );
             await _personRepository.AddAsync(person);
+            responsMessage = "Person created successfully";
+        }
+        else
+        {
+           person.UpdateProfile(
+                email: effectiveEmail,
+                name: request.Name,
+                username: request.UserName,
+                birthDate: request.BirthDate,
+                phone: request.Phone,
+                weightKg: request.WeightKg,
+                heightCm: request.HeightCm
+           );
+            responsMessage = "Person updated successfully";
         }
 
-        return new PersonDtoResponse(person.Id, person.Name, person.Email);
+        await _personRepository.SaveChangesAsync();
+
+        var data = new PersonResponseDTO(person.Id, person.Name, person.Email);
+        return BaseResponse<PersonResponseDTO>.Ok(data, responsMessage);
     }
 
-    public async Task<PersonDtoResponse> GetCurrentUser()
+    public async Task<BaseResponse<PersonResponseDTO>> GetCurrentPerson()
     {
         var supabaseUserId = _currentUser.SupabaseUserId
-            ?? throw new InvalidOperationException("Usuário não autenticado.");
+            ?? throw new UnauthorizedAccessException("Invalid or expired token");
 
         var person = await _personRepository.GetBySupabaseUserIdAsync(supabaseUserId)
-            ?? throw new InvalidOperationException("Pessoa não encontrada.");
+            ?? throw new InvalidOperationException("Person not Found");
 
-        return new PersonDtoResponse(person.Id, person.Name, person.Email);
+        var data = new PersonResponseDTO(person.Id, person.Name, person.Email);
+        return BaseResponse<PersonResponseDTO>.Ok(data, "Person fetched successfully");
     }
 }
