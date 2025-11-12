@@ -16,23 +16,23 @@ public class Person
     protected Person() { }
 
     public Person(
-        Guid id,
-        string name,
-        string email,
         string supabaseUserId,
+        string email,
+        string name,
         DateTime? birthDate = null,
         string? phone = null,
         float? weightKg = null,
-        int? heightCm = null)
+        int? heightCm = null
+    )
     {
-        Id = id;
+        Id = Guid.NewGuid();
+        SupabaseUserId = supabaseUserId;
         Email = email;
         Name = name;
         BirthDate = birthDate;
         Phone = phone;
         WeightKg = weightKg;
         HeightCm = heightCm;
-        SupabaseUserId = supabaseUserId;
         CreatedAt = DateTime.UtcNow;
     }
 }

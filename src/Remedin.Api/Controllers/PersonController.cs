@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Remedin.Application.DTOs;
+using Remedin.Application.DTOs.Responses;
 using Remedin.Application.Interfaces;
 
 namespace Remedin.Api.Controllers;
@@ -16,7 +16,7 @@ public class PersonController : ControllerBase
     }
 
     [HttpGet("me")]
-    public async Task<ActionResult<PersonDto>> GetMe()
+    public async Task<ActionResult<PersonDtoResponse>> GetMe()
     {
         var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
         var person = await _personService.GetOrCreateByUserAsync(token);

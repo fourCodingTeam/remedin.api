@@ -79,39 +79,4 @@ app.MapGet("/me", (ClaimsPrincipal user) =>
     return Results.Ok(new { sub, email });
 }).RequireAuthorization();
 
-app.MapGet("/health/supabase", async (IConfiguration config) =>
-{
-    var connectionString = config.GetConnectionString("DefaultConnection");
-    var projectRef = config["SUPABASE_PROJECT_REF"];
-
-    if (string.IsNullOrEmpty(connectionString))
-        return Results.Problem("Connection string não configurada.", statusCode: 500);
-
-    try
-    {
-        await using var connection = new NpgsqlConnection(connectionString);
-        await connection.OpenAsync();
-
-        // Testa uma consulta simples
-        await using var command = new NpgsqlCommand("SELECT 1;", connection);
-        var result = await command.ExecuteScalarAsync();
-
-        if (Convert.ToInt32(result) == 1)
-        {
-            return Results.Ok(new
-            {
-                status = "ok",
-                message = "Conectado ao banco Supabase com sucesso!",
-                projectRef
-            });
-        }
-
-        return Results.Problem("Falha ao executar consulta de teste.", statusCode: 500);
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem($"Erro ao conectar ao Supabase: {ex.Message}", statusCode: 500);
-    }
-});
-
 app.Run();
