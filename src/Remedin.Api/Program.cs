@@ -77,6 +77,7 @@ builder.Services.AddHttpContextAccessor();
 #region Referencia das Services da Application
 
 builder.Services.AddScoped<IPersonService, PersonService>();
+builder.Services.AddScoped<IMedicineService, MedicineService>();
 
 #endregion
 
