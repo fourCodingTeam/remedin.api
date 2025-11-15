@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Remedin.Application.DTOs;
+using Remedin.Application.DTOs.Requests;
+using Remedin.Application.DTOs.Responses;
 using Remedin.Application.Interfaces;
 using Supabase.Functions.Responses;
 

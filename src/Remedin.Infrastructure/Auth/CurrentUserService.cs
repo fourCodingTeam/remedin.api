@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Remedin.Domain.Interfaces;
+using Remedin.Application.Interfaces;
 using System.Security.Claims;
 
 namespace Remedin.Infrastructure.Auth;
