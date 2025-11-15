@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Remedin.Application.Interfaces;
 using Remedin.Domain.Interfaces;
 using Remedin.Infrastructure.Auth;
 using Remedin.Infrastructure.Persistence;
@@ -32,6 +33,7 @@ public static class DependencyInjection
         services.AddScoped<IPersonRepository, PersonRepository>();
         services.AddScoped<IMedicineRepository, MedicineRepository>(); 
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IAdminAuthService, SupabaseAdminService>();
 
         return services;
     }

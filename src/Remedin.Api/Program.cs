@@ -40,6 +40,14 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DevPolicy", policy =>
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
 
 var configuration = builder.Configuration;
 
@@ -83,6 +91,7 @@ builder.Services.AddScoped<IMedicineService, MedicineService>();
 
 var app = builder.Build();
 
+app.UseCors("DevPolicy");
 
 if (app.Environment.IsDevelopment())
 {

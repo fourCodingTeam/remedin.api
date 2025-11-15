@@ -1,4 +1,4 @@
-namespace Remedin.Application.DTOs
+namespace Remedin.Application.DTOs.Responses
 {
     public class BaseResponse<T>
     {
@@ -15,12 +15,12 @@ namespace Remedin.Application.DTOs
             Data = data;
         }
 
-        public static BaseResponse<T> Ok(T? data = default, string? message = null)
+        public static BaseResponse<T> Ok(string? message = null, T? data = default)
         {
             return new (true, message, data);
         }
 
-        public static BaseResponse<T> Fail(T? data = default, string? message = null)
+        public static BaseResponse<T> Fail(string? message = null, T? data = default)
         {
             return new(false, message, data);
         }

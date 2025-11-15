@@ -1,4 +1,5 @@
-﻿using Remedin.Application.DTOs;
+﻿using Remedin.Application.DTOs.Requests;
+using Remedin.Application.DTOs.Responses;
 
 namespace Remedin.Application.Interfaces;
 
