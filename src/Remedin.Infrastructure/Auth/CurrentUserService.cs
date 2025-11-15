@@ -13,10 +13,12 @@ public class CurrentUserService : ICurrentUserService
         _httpContextAccessor = httpContextAccessor;
     }
 
+    private ClaimsPrincipal? User =>
+       _httpContextAccessor.HttpContext?.User;
+
     public string? SupabaseUserId =>
-         _httpContextAccessor.HttpContext?.User?.FindFirst("sub")?.Value;
+         User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
     public string? Email =>
-        _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value
-        ?? _httpContextAccessor.HttpContext?.User?.FindFirst("email")?.Value;
+        User?.FindFirst(ClaimTypes.Email)?.Value ?? User?.FindFirst("email")?.Value;
 }

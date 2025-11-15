@@ -1,35 +1,57 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Remedin.Application.Interfaces;
 using Remedin.Application.Services;
 using Remedin.Infrastructure.Extensions;
 using System.Security.Claims;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Remedin API", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Insira o token JWT do Supabase no formato: **Bearer {token}**",
+        In = ParameterLocation.Header,
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Id = "Bearer",
+                    Type = ReferenceType.SecurityScheme
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var configuration = builder.Configuration;
 
 var supabaseProjectRef = configuration["SUPABASE_PROJECT_REF"]
     ?? throw new InvalidOperationException("SUPABASE_PROJECT_REF missing");
 
-var supabaseUrl = $"https://{supabaseProjectRef}.supabase.co";
-var jwksUrl = $"{supabaseUrl}/auth/v1/.well-known/jwks.json";
+var supabaseUrl = $"https://{supabaseProjectRef}.supabase.co/auth/v1";
+var jwksUrl = $"{supabaseUrl}/.well-known/jwks.json";
 var validIssuer = supabaseUrl;
-var validAudience = "authenticated";
 
-builder.Services.AddRouting();
-builder.Services.AddAuthorization();
-builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddHttpContextAccessor();
-
-#region Referencia das Services da Application
-builder.Services.AddScoped<IPersonService, PersonService>();
-#endregion
-
+var jwtSecret = configuration["SUPABASE_JWT_SECRET"]
+    ?? throw new InvalidOperationException("SUPABASE_JWT_SECRET missing");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -39,20 +61,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuer = true,
             ValidIssuer = validIssuer,
-            ValidateAudience = true,
-            ValidAudience = validAudience,
+            ValidateAudience = false,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromMinutes(2),
             ValidateIssuerSigningKey = true,
-            IssuerSigningKeyResolver = (token, securityToken, kid, validationParameters) =>
-            {
-                using var client = new HttpClient();
-                var json = client.GetStringAsync(jwksUrl).Result;
-                var keys = new JsonWebKeySet(json).Keys;
-                return keys;
-            }
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
         };
     });
+
+builder.Services.AddRouting();
+builder.Services.AddAuthorization();
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
+
+#region Referencia das Services da Application
+
+builder.Services.AddScoped<IPersonService, PersonService>();
+builder.Services.AddScoped<IMedicineService, MedicineService>();
+
+#endregion
 
 var app = builder.Build();
 
@@ -66,16 +93,6 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-
-// Exemplo de endpoint público
-app.MapGet("/", () => Results.Ok(new { msg = "Remedin API up" }));
-
-// Endpoint protegido
-app.MapGet("/me", (ClaimsPrincipal user) =>
-{
-    var sub = user.FindFirst("sub")?.Value;
-    var email = user.FindFirst("email")?.Value;
-    return Results.Ok(new { sub, email });
-}).RequireAuthorization();
+app.MapControllers();
 
 app.Run();

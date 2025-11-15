@@ -6,7 +6,6 @@ using Supabase.Functions.Responses;
 
 namespace Remedin.Api.Controllers;
 
-
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
@@ -26,7 +25,7 @@ public class PersonController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("me")]
+    [HttpGet("Me")]
     public async Task<ActionResult<BaseResponse<PersonResponseDTO>>> GetCurrentPerson()
     {
         var response = await _personService.GetCurrentPerson();
