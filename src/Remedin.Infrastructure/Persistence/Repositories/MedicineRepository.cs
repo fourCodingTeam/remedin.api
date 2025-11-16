@@ -19,12 +19,19 @@ public class MedicineRepository : IMedicineRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<List<Medicine>> GetByPersonIdAsync(Guid personId)
+    public async Task<(List<Medicine> Items, int TotalCount)> GetByPersonIdPagedAsync(Guid personId, int page, int pageSize)
     {
-        return await _context.Medicines
+        var query = _context.Medicines
             .Where(m => m.PersonId == personId)
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.CreatedAt);
+
+        var total = await query.CountAsync();
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
+        return (items, total);
     }
 
     public async Task UpdateAsync(Medicine medicine)

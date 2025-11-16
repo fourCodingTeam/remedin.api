@@ -12,7 +12,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
         services.AddDbContext<RemedinDbContext>(options =>
-            options.UseNpgsql(config.GetConnectionString("DefaultConnection")));
+        options.UseNpgsql(config.GetConnectionString("DefaultConnection")));
 
         services.AddSingleton(sp =>
         {
@@ -32,6 +32,8 @@ public static class DependencyInjection
         services.AddScoped<IPersonRepository, PersonRepository>();
         services.AddScoped<IMedicineRepository, MedicineRepository>(); 
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IScheduleRepository, ScheduleRepository>();
+
 
         return services;
     }
