@@ -41,7 +41,7 @@ public class MedicineService : IMedicineService
             medicine.Observations
         );
 
-        return BaseResponse<MedicineDtoResponse>.Ok(dto, "Medicine created successfully");
+        return BaseResponse<MedicineDtoResponse>.Ok("Medicine created successfully", dto);
     }
 
     public async Task<BaseResponse<PagedResult<MedicineDtoResponse>>> GetAllByPersonAsync(Guid personId, int page = 1, int pageSize = 10)
@@ -62,7 +62,7 @@ public class MedicineService : IMedicineService
         )).ToList();
 
         var paged = new PagedResult<MedicineDtoResponse>(list, total, page, pageSize);
-        return BaseResponse<PagedResult<MedicineDtoResponse>>.Ok(paged, "Medicines fetched successfully");
+        return BaseResponse<PagedResult<MedicineDtoResponse>>.Ok("Medicines fetched successfully", paged);
     }
 
     public async Task<BaseResponse<MedicineDtoResponse>> UpdateMedicineAsync(Guid personId, UpdateMedicineRequest request)
@@ -90,14 +90,14 @@ public class MedicineService : IMedicineService
             medicine.Observations
         );
 
-        return BaseResponse<MedicineDtoResponse>.Ok(dto, "Medicine updated successfully");
+        return BaseResponse<MedicineDtoResponse>.Ok("Medicine updated successfully", dto);
     }
 
     public async Task<BaseResponse<MedicineDtoResponse?>> GetByIdAsync(Guid personId, Guid id)
     {
         var medicine = await _medicineRepository.GetByIdAsync(id);
-        if (medicine == null) return BaseResponse<MedicineDtoResponse?>.Fail(null, "Medicine not found");
-        if (medicine.PersonId != personId) return BaseResponse<MedicineDtoResponse?>.Fail(null, "Medicine not found or access denied");
+        if (medicine == null) return BaseResponse<MedicineDtoResponse?>.Fail("Medicine not found");
+        if (medicine.PersonId != personId) return BaseResponse<MedicineDtoResponse?>.Fail("Medicine not found or access denied");
 
         var dto = new MedicineDtoResponse(
             medicine.Id,
@@ -109,6 +109,6 @@ public class MedicineService : IMedicineService
             medicine.Observations
         );
 
-        return BaseResponse<MedicineDtoResponse?>.Ok(dto, "Medicine fetched successfully");
+        return BaseResponse<MedicineDtoResponse?>.Ok("Medicine fetched successfully", dto);
     }
 }

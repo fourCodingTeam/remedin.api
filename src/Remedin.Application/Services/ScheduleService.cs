@@ -55,7 +55,7 @@ public class ScheduleService : IScheduleService
             schedule.WeekDays.Select(w => w.DayOfWeek).ToList()
         );
 
-        return BaseResponse<ScheduleDtoResponse>.Ok(dto, "Schedule created successfully");
+        return BaseResponse<ScheduleDtoResponse>.Ok("Schedule created successfully", dto);
     }
 
     public async Task<BaseResponse<PagedResult<ScheduleDtoResponse>>> GetAllByPersonAsync(Guid personId, int page = 1, int pageSize = 10)
@@ -76,15 +76,15 @@ public class ScheduleService : IScheduleService
         )).ToList();
 
         var paged = new PagedResult<ScheduleDtoResponse>(list, total, page, pageSize);
-        return BaseResponse<PagedResult<ScheduleDtoResponse>>.Ok(paged, "Schedules fetched successfully");
+        return BaseResponse<PagedResult<ScheduleDtoResponse>>.Ok("Schedules fetched successfully", paged);
     }
 
     public async Task<BaseResponse<ScheduleDtoResponse?>> GetByIdAsync(Guid personId, Guid id)
     {
         var schedule = await _scheduleRepository.GetByIdAsync(id);
-        if (schedule == null) return BaseResponse<ScheduleDtoResponse?>.Fail(null, "Schedule not found");
+        if (schedule == null) return BaseResponse<ScheduleDtoResponse?>.Fail("Schedule not found");
         if (schedule.Medicine == null || schedule.Medicine.PersonId != personId)
-            return BaseResponse<ScheduleDtoResponse?>.Fail(null, "Schedule not found or access denied");
+            return BaseResponse<ScheduleDtoResponse?>.Fail("Schedule not found or access denied");
 
         var dto = new ScheduleDtoResponse(
             schedule.Id,
@@ -96,7 +96,7 @@ public class ScheduleService : IScheduleService
             schedule.WeekDays.Select(w => w.DayOfWeek).ToList()
         );
 
-        return BaseResponse<ScheduleDtoResponse?>.Ok(dto, "Schedule fetched successfully");
+        return BaseResponse<ScheduleDtoResponse?>.Ok("Schedule fetched successfully", dto);
     }
 
     public async Task<BaseResponse<ScheduleDtoResponse>> UpdateScheduleAsync(Guid personId, UpdateScheduleRequest request)
@@ -146,6 +146,6 @@ public class ScheduleService : IScheduleService
             existing.WeekDays.Select(w => w.DayOfWeek).ToList()
         );
 
-        return BaseResponse<ScheduleDtoResponse>.Ok(dto, "Schedule updated successfully");
+        return BaseResponse<ScheduleDtoResponse>.Ok("Schedule updated successfully", dto);
     }
 }
