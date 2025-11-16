@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Remedin.Application.DTOs;
+using Remedin.Application.DTOs.Requests;
+using Remedin.Application.DTOs.Responses;
 using Remedin.Application.Interfaces;
 using Supabase.Functions.Responses;
 
@@ -25,7 +26,7 @@ public class PersonController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("Me")]
+    [HttpGet]
     public async Task<ActionResult<BaseResponse<PersonResponseDTO>>> GetCurrentPerson()
     {
         var response = await _personService.GetCurrentPerson();
