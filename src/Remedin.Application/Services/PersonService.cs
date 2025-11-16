@@ -102,7 +102,7 @@ public class PersonService : IPersonService
         }
     }
 
-    public async Task<BaseResponse<PersonResponseDTO>> GetCurrentPerson()
+    public async Task<BaseResponse<Person>> GetCurrentPerson()
     {
         var supabaseUserId = _currentUser.SupabaseUserId
             ?? throw new UnauthorizedAccessException("Invalid or expired token");
@@ -110,7 +110,6 @@ public class PersonService : IPersonService
         var person = await _personRepository.GetBySupabaseUserIdAsync(supabaseUserId)
             ?? throw new InvalidOperationException("Person not Found");
 
-        var data = new PersonResponseDTO(person.Id, person.Name, person.Email);
-        return BaseResponse<PersonResponseDTO>.Ok("Person fetched successfully", data);
+        return BaseResponse<Person>.Ok("Person fetched successfully", person);
     }
 }
