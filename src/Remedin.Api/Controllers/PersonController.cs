@@ -26,7 +26,7 @@ public class PersonController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("Me")]
+    [HttpGet]
     public async Task<ActionResult<BaseResponse<PersonResponseDTO>>> GetCurrentPerson()
     {
         var response = await _personService.GetCurrentPerson();
