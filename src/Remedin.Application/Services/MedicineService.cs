@@ -16,7 +16,7 @@ public class MedicineService : IMedicineService
         _medicineRepository = medicineRepository;
     }
 
-    public async Task<MedicineDtoResponse> AddMedicineAsync(Guid personId, CreateMedicineRequest request)
+    public async Task<BaseResponse<MedicineDtoResponse>> AddMedicineAsync(Guid personId, CreateMedicineRequest request)
     {
         var medicine = new Medicine(
             Guid.NewGuid(),
@@ -31,7 +31,7 @@ public class MedicineService : IMedicineService
 
         await _medicineRepository.AddAsync(medicine);
 
-        return new MedicineDtoResponse(
+        var dto = new MedicineDtoResponse(
             medicine.Id,
             medicine.Name,
             medicine.DosageValue,
@@ -40,13 +40,18 @@ public class MedicineService : IMedicineService
             medicine.EndDate,
             medicine.Observations
         );
+
+        return BaseResponse<MedicineDtoResponse>.Ok(dto, "Medicine created successfully");
     }
 
-    public async Task<List<MedicineDtoResponse>> GetAllByPersonAsync(Guid personId)
+    public async Task<BaseResponse<PagedResult<MedicineDtoResponse>>> GetAllByPersonAsync(Guid personId, int page = 1, int pageSize = 10)
     {
-        var medicines = await _medicineRepository.GetByPersonIdAsync(personId);
+        if (page <= 0) page = 1;
+        if (pageSize <= 0) pageSize = 10;
 
-        return medicines.Select(m => new MedicineDtoResponse(
+        var (medicines, total) = await _medicineRepository.GetByPersonIdPagedAsync(personId, page, pageSize);
+
+        var list = medicines.Select(m => new MedicineDtoResponse(
             m.Id,
             m.Name,
             m.DosageValue,
@@ -55,9 +60,12 @@ public class MedicineService : IMedicineService
             m.EndDate,
             m.Observations
         )).ToList();
+
+        var paged = new PagedResult<MedicineDtoResponse>(list, total, page, pageSize);
+        return BaseResponse<PagedResult<MedicineDtoResponse>>.Ok(paged, "Medicines fetched successfully");
     }
 
-    public async Task<MedicineDtoResponse> UpdateMedicineAsync(Guid personId, UpdateMedicineRequest request)
+    public async Task<BaseResponse<MedicineDtoResponse>> UpdateMedicineAsync(Guid personId, UpdateMedicineRequest request)
     {
         var medicine = new Medicine(
             request.Id,
@@ -72,7 +80,7 @@ public class MedicineService : IMedicineService
 
         await _medicineRepository.UpdateAsync(medicine);
 
-        return new MedicineDtoResponse(
+        var dto = new MedicineDtoResponse(
             medicine.Id,
             medicine.Name,
             medicine.DosageValue,
@@ -81,15 +89,17 @@ public class MedicineService : IMedicineService
             medicine.EndDate,
             medicine.Observations
         );
+
+        return BaseResponse<MedicineDtoResponse>.Ok(dto, "Medicine updated successfully");
     }
 
-    public async Task<MedicineDtoResponse?> GetByIdAsync(Guid personId, Guid id)
+    public async Task<BaseResponse<MedicineDtoResponse?>> GetByIdAsync(Guid personId, Guid id)
     {
         var medicine = await _medicineRepository.GetByIdAsync(id);
-        if (medicine == null) return null;
-        if (medicine.PersonId != personId) return null;
+        if (medicine == null) return BaseResponse<MedicineDtoResponse?>.Fail(null, "Medicine not found");
+        if (medicine.PersonId != personId) return BaseResponse<MedicineDtoResponse?>.Fail(null, "Medicine not found or access denied");
 
-        return new MedicineDtoResponse(
+        var dto = new MedicineDtoResponse(
             medicine.Id,
             medicine.Name,
             medicine.DosageValue,
@@ -98,5 +108,7 @@ public class MedicineService : IMedicineService
             medicine.EndDate,
             medicine.Observations
         );
+
+        return BaseResponse<MedicineDtoResponse?>.Ok(dto, "Medicine fetched successfully");
     }
 }

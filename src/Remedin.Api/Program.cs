@@ -86,6 +86,7 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IPersonService, PersonService>();
 builder.Services.AddScoped<IMedicineService, MedicineService>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
 #endregion
 

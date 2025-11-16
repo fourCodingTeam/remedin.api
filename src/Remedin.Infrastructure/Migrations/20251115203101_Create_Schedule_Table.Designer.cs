@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Remedin.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using Remedin.Infrastructure.Persistence;
 namespace Remedin.Infrastructure.Migrations
 {
     [DbContext(typeof(RemedinDbContext))]
-    partial class RemedinDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251115203101_Create_Schedule_Table")]
+    partial class Create_Schedule_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -114,6 +117,25 @@ namespace Remedin.Infrastructure.Migrations
                     b.ToTable("Persons");
                 });
 
+            modelBuilder.Entity("Remedin.Domain.Entities.ScheduleWeekDay", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ScheduleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScheduleId");
+
+                    b.ToTable("ScheduleWeekDays");
+                });
+
             modelBuilder.Entity("Schedule", b =>
                 {
                     b.Property<Guid>("Id")
@@ -149,19 +171,6 @@ namespace Remedin.Infrastructure.Migrations
                     b.ToTable("Schedules", (string)null);
                 });
 
-            modelBuilder.Entity("ScheduleWeekDay", b =>
-                {
-                    b.Property<Guid>("ScheduleId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("DayOfWeek")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ScheduleId", "DayOfWeek");
-
-                    b.ToTable("ScheduleWeekDays");
-                });
-
             modelBuilder.Entity("Remedin.Domain.Entities.Medicine", b =>
                 {
                     b.HasOne("Remedin.Domain.Entities.Person", null)
@@ -177,6 +186,17 @@ namespace Remedin.Infrastructure.Migrations
                     b.Navigation("Person");
                 });
 
+            modelBuilder.Entity("Remedin.Domain.Entities.ScheduleWeekDay", b =>
+                {
+                    b.HasOne("Schedule", "Schedule")
+                        .WithMany("WeekDays")
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Schedule");
+                });
+
             modelBuilder.Entity("Schedule", b =>
                 {
                     b.HasOne("Remedin.Domain.Entities.Medicine", "Medicine")
@@ -186,17 +206,6 @@ namespace Remedin.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Medicine");
-                });
-
-            modelBuilder.Entity("ScheduleWeekDay", b =>
-                {
-                    b.HasOne("Schedule", "Schedule")
-                        .WithMany("WeekDays")
-                        .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Schedule");
                 });
 
             modelBuilder.Entity("Schedule", b =>

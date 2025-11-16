@@ -7,6 +7,8 @@ public class RemedinDbContext : DbContext
 {
     public DbSet<Person> Persons => Set<Person>();
     public DbSet<Medicine> Medicines => Set<Medicine>();
+    public DbSet<Schedule> Schedules => Set<Schedule>();
+    public DbSet<ScheduleWeekDay> ScheduleWeekDays => Set<ScheduleWeekDay>();
 
     public RemedinDbContext(DbContextOptions<RemedinDbContext> options) : base(options) { }
 
@@ -33,5 +35,52 @@ public class RemedinDbContext : DbContext
                    .OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<Schedule>(builder =>
+        {
+            builder.ToTable("Schedules");
+
+            builder.HasKey(s => s.Id);
+
+            builder.Property(s => s.ScheduledTime)
+                   .HasConversion(
+                        v => v.ToTimeSpan(),
+                        v => TimeOnly.FromTimeSpan(v))
+                   .IsRequired();
+
+            builder.Property(s => s.FrequencyType)
+                   .IsRequired();
+
+            builder.Property(s => s.PreAlarmMinutes)
+                   .HasDefaultValue(0);
+
+            builder.Property(s => s.PosAlarmMinutes)
+                   .HasDefaultValue(0);
+
+            builder.Property(s => s.CreatedAt)
+                   .IsRequired();
+
+            builder.HasOne(s => s.Medicine)
+                   .WithMany()
+                   .HasForeignKey(s => s.MedicineId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(s => s.WeekDays)
+                   .WithOne(w => w.Schedule)
+                   .HasForeignKey(w => w.ScheduleId)
+                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ScheduleWeekDay>(builder =>
+        {
+            builder.HasKey(w => new { w.ScheduleId, w.DayOfWeek });
+
+            builder.Property(w => w.DayOfWeek)
+                   .IsRequired();
+
+            builder.HasOne(w => w.Schedule)
+                   .WithMany(s => s.WeekDays)
+                   .HasForeignKey(w => w.ScheduleId)
+                   .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }
